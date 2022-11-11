@@ -3,6 +3,8 @@ parITech Advanced Form Bundle
 
 Powerful Symfony form components
 
+initialy fork from https://github.com/sherlockode/advanced-form-bundle and upgraded to SF6
+
 ## Prerequisites
 
 This bundle requires Symfony 6.0 and jQuery.

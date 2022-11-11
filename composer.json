@@ -1,17 +1,17 @@
 {
-    "name": "Partitech/advanced-form-bundle",
+    "name": "partitech/advanced-form-bundle",
     "description": "Powerful Symfony form components",
     "license": "MIT",
     "type": "symfony-bundle",
     "authors": [
         {
-            "name": "Partitech",
-            "email": "contact@Partitech.fr"
+            "name": "partITech",
+            "email": "contact@partitech.fr"
         }
     ],
     "require": {
         "php": "^7.4|^8.0",
-        "symfony/framework-bundle": "^4.4|^5.0|^6.0",
+        "symfony/framework-bundle": "^^5.0|^6.0",
         "twig/twig": "^2.0|^3.0"
     },
     "suggest": {

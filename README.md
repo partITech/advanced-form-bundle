@@ -5,7 +5,7 @@ Powerful Symfony form components
 
 ## Prerequisites
 
-This bundle requires Symfony 3.4+ and jQuery.
+This bundle requires Symfony 6.0 and jQuery.
 
 ## Installation
 

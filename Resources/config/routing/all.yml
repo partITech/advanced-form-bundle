@@ -1,20 +1,20 @@
-partitechad_afb_upload:
+partitech_afb_upload:
   path: /partitechadvancedform/upload
   controller: "partitech_afb.file_upload.controller::uploadFileAction"
 
-partitechad_afb_remove:
+partitech_afb_remove:
   path: /partitechadvancedform/remove
   controller: "partitech_afb.file_upload.controller::removeFileAction"
 
-partitechad_afb_upload_tmp:
+partitech_afb_upload_tmp:
   path: /partitechadvancedform/upload_tmp
   controller: "partitech_afb.file_upload.controller::uploadTmpAction"
 
-partitechad_afb_remove_tmp:
+partitech_afb_remove_tmp:
   path: /partitechadvancedform/remove_tmp
   controller: "partitech_afb.file_upload.controller::removeTmpFileAction"
 
-partitechad_afb_preview:
+partitech_afb_preview:
   path: /partitechadvancedform/uploaded/{token}
   controller: "partitech_afb.file_upload.controller::viewUploadedFileAction"
 

@@ -1,0 +1,23 @@
+{
+    "name": "Partitech/advanced-form-bundle",
+    "description": "Powerful Symfony form components",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "authors": [
+        {
+            "name": "Partitech",
+            "email": "contact@Partitech.fr"
+        }
+    ],
+    "require": {
+        "php": "^7.4|^8.0",
+        "symfony/framework-bundle": "^4.4|^5.0|^6.0",
+        "twig/twig": "^2.0|^3.0"
+    },
+    "suggest": {
+        "vich/uploader-bundle": "Allows to use Vich Uploader to handle file uploads"
+    },
+    "autoload": {
+        "psr-4": { "Partitech\\AdvancedFormBundle\\": "" }
+    }
+}

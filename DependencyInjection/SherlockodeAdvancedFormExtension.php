@@ -1,0 +1,127 @@
+<?php
+
+namespace Partitech\AdvancedFormBundle\DependencyInjection;
+
+use Partitech\AdvancedFormBundle\DependentEntity\DependentMapperInterface;
+use Partitech\AdvancedFormBundle\Storage\FilesystemStorage;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+
+class PartitechAdvancedFormExtension extends Extension
+{
+    /**
+     * Loads the extension.
+     *
+     * @param array            $configs   The configuration
+     * @param ContainerBuilder $container The container builder
+     */
+    public function load(array $configs, ContainerBuilder $container)
+    {
+        $configuration = new Configuration();
+        $config = $this->processConfiguration($configuration, $configs);
+
+        $mappings = $this->processMappings($config['uploader_mappings']);
+        $container->setParameter('partitech_afb.uploader_mappings', $mappings);
+        $container->setParameter('partitech_afb.tmp_uploaded_file_class', $config['tmp_uploaded_file_class']);
+        $container->setParameter('partitech_afb.tmp_uploaded_file_dir', $config['tmp_uploaded_file_dir']);
+
+        $this->loadServices($container);
+        $this->registerFormTheme($container);
+
+        $storages = [];
+        foreach ($config['storages'] as $name => $storage) {
+            $definition = $this->getStorageDefinition($name, $storage);
+            $storages[$name] = $definition;
+            $container->setDefinition(sprintf('partitech_afb.%s_storage', $name), $definition);
+        }
+        $definition = $container->getDefinition('partitech_afb.upload_handler.property');
+        $definition->setArgument(1, $storages);
+
+        if (!class_exists('Vich\UploaderBundle\VichUploaderBundle')) {
+            $container->removeDefinition('partitech_afb.upload_handler.vich');
+        }
+
+        $definition = $container->getDefinition('partitech_afb.upload_manager');
+        $taggedServices = $container->findTaggedServiceIds('partitech_afb.upload_handler');
+        foreach ($taggedServices as $id => $tags) {
+            foreach ($tags as $tag) {
+                $definition->addMethodCall('addHandler', [new Reference($id), $tag['alias'] ?? $id]);
+            }
+        }
+
+        $container->registerForAutoconfiguration(DependentMapperInterface::class)
+            ->addTag('partitech_afb.dependent_entity_mapper');
+    }
+
+    /**
+     * @param string $name
+     * @param array  $config
+     *
+     * @return Definition
+     */
+    private function getStorageDefinition($name, $config)
+    {
+        if (isset($config['filesystem'])) {
+            return new Definition(FilesystemStorage::class, [$config['filesystem']['path']]);
+        }
+        throw new \LogicException(sprintf('The storage %s is not correctly defined', $name));
+    }
+
+    /**
+     * @param ContainerBuilder $container
+     */
+    private function loadServices(ContainerBuilder $container)
+    {
+        $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $toBeLoaded = [
+            'command.xml',
+            'controller.xml',
+            'form.xml',
+            'manager.xml',
+        ];
+        foreach ($toBeLoaded as $file) {
+            $loader->load($file);
+        }
+    }
+
+    /**
+     * @param ContainerBuilder $container
+     */
+    private function registerFormTheme(ContainerBuilder $container)
+    {
+        $resources = $container->hasParameter('twig.form.resources') ?
+            $container->getParameter('twig.form.resources') : [];
+
+        $resources = array_merge($resources, [
+            '@PartitechAdvancedForm/Form/upload_file.html.twig',
+        ]);
+        $container->setParameter('twig.form.resources', $resources);
+    }
+
+    /**
+     * @param array $mappings
+     *
+     * @return array
+     */
+    private function processMappings($mappings)
+    {
+        foreach ($mappings as $key => $mapping) {
+            $maxSize = $mapping['max_size'] ?? null;
+
+            $intMaxSize = null;
+            if (ctype_digit((string) $maxSize)) {
+                $intMaxSize = (int) $maxSize;
+            } elseif (preg_match('/^(\d++)('.implode('|', array_keys(Configuration::ALLOWED_SIZE_UNITS)).')$/i', $maxSize, $matches)) {
+                $intMaxSize = $matches[1] * Configuration::ALLOWED_SIZE_UNITS[$unit = strtolower($matches[2])];
+            }
+
+            $mappings[$key]['int_max_size'] = $intMaxSize;
+        }
+
+        return $mappings;
+    }
+}

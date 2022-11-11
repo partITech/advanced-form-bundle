@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd"
+>
+    <services>
+        <service id="partitech_afb.upload_handler.vich" class="Partitech\AdvancedFormBundle\UploadHandler\VichUploadHandler">
+            <argument type="service" id="vich_uploader.upload_handler"/>
+            <argument type="service" id="annotation_reader"/>
+            <tag name="partitech_afb.upload_handler" alias="vich"/>
+        </service>
+        <service id="partitech_afb.upload_handler.property" class="Partitech\AdvancedFormBundle\UploadHandler\PropertyUploadHandler">
+            <argument type="service" id="partitech_afb.mapping_manager"/>
+            <argument/>
+            <tag name="partitech_afb.upload_handler" alias="property"/>
+        </service>
+        <service id="partitech_afb.upload_manager" class="Partitech\AdvancedFormBundle\Manager\UploadManager">
+            <argument type="service" id="doctrine.orm.entity_manager"/>
+            <argument type="service" id="partitech_afb.storage.tmp_storage"/>
+            <argument>%partitech_afb.tmp_uploaded_file_class%</argument>
+        </service>
+        <service id="partitech_afb.mapping_manager" class="Partitech\AdvancedFormBundle\Manager\MappingManager">
+            <call method="setMappingData">
+                <argument>%partitech_afb.uploader_mappings%</argument>
+            </call>
+        </service>
+        <service id="partitech_afb.storage.tmp_storage" class="Partitech\AdvancedFormBundle\Storage\FilesystemStorage">
+            <argument>%partitech_afb.tmp_uploaded_file_dir%</argument>
+        </service>
+        <service id="partitech_afb.twig_extension" class="Partitech\AdvancedFormBundle\Twig\Extension\UploaderExtension">
+            <argument type="service" id="router"/>
+            <argument type="service" id="partitech_afb.mapping_manager"/>
+            <argument type="service" id="partitech_afb.upload_manager"/>
+            <tag name="twig.extension"/>
+        </service>
+        <service id="partitech_afb.dependent_entity.mapper_pool" class="Partitech\AdvancedFormBundle\DependentEntity\DependentMapperPool">
+        </service>
+    </services>
+</container>

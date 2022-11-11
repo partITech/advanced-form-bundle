@@ -1,0 +1,136 @@
+{% block afb_file_widget %}
+    {% import _self as self %}
+    <div class="afb_file_container {% if imagePreview %}with_preview{% endif %}" {{ block('data_attributes') }}
+        {% with {progressBar: true, img: null, fileName:null, uploadId: null, file: null} %}
+            data-prototype="{{ block('file_info')|e('html_attr') }}"
+        {% endwith %}
+    >
+        {% if not disabled %}
+            {{ block('dropzone') }}
+        {% endif %}
+        {% if false == imagePreview or false == multiple %}
+            {{ block('file_list') }}
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block data_attributes %}
+    data-uploadurl="{{ uploadUriPath|e }}"
+    data-removeurl="{{ removeUriPath|e }}"
+    data-removetmpurl="{{ removeTmpUriPath|e }}"
+    data-name="{{ full_name|e }}"
+    data-mapping="{{ mapping|e }}"
+    data-upload-mode="{{ uploadMode }}"
+    {% if multiple %}
+        data-multiple="true"
+    {% endif %}
+    {% if async %}
+        data-async="true"
+    {% endif %}
+    {% if subject is not null and subject.id is not null %}
+        data-id="{{ subject.id|e }}"
+    {% endif %}
+    {% if jsCallback %}
+        data-callback="{{ jsCallback|e }}"
+    {% endif %}
+    {% if jsPreRemoveCallback %}
+        data-pre-remove-callback="{{ jsPreRemoveCallback|e }}"
+    {% endif %}
+    {% if jsErrorCallback %}
+        data-errorcallback="{{ jsErrorCallback|e }}"
+    {% endif %}
+    {% if imagePreview %}
+        data-imgpreview="true"
+    {% endif %}
+{% endblock %}
+
+{% block dropzone %}
+    <label for="afb_file_input-{{ id }}" class="afb_dropzone {% if files is not empty%}afb_dropzone-started{% endif %}"{% if files|length > 0 and false == multiple %} style="display:none"{% endif %}>
+        <h5 class="afb_dropzone-title">{{ (dropzoneLabel ?? label)|trans({}, translation_domain) }}</h5>
+        <input type="file" {% if multiple %}multiple{% endif %} class="afb_file_input" id="afb_file_input-{{ id }}"/>
+
+        {% if true == imagePreview and true == multiple %}
+            {{ block('file_list') }}
+        {% endif %}
+    </label>
+{% endblock %}
+
+{% block file_list %}
+    {% set i = 0 %}
+    <ul class="afb_upload_container {% if false == imagePreview %}afb_no_preview{% endif %}">
+        {% for file in files %}
+            {% if file.id is not null %}
+                {% set i = i + 1 %}
+                {% with {progressBar: false, img: partitech_afb_asset(mapping, file.id), fileName: partitech_afb_filename(mapping, file), uploadId: i, file: file} %}
+                    {{ block('file_info') }}
+                {% endwith %}
+            {% endif %}
+        {% endfor %}
+
+        {# render the tmp uploaded file form inputs (key and token) which have not been saved yet
+        this will be empty in regular cases, only present on invalid forms (key/token data was just posted) #}
+        {% if multiple %}
+            {% set children = form.files|default([]) %}
+        {% else %}
+            {% set children = [form.files] %}
+        {% endif %}
+
+        {% for child in children %}
+            {% if child.vars.data is not empty and child.vars.form.children.key is defined and child.vars.form.children.token is defined %}
+                {% set data = child.vars.data %}
+                {% set key = child.vars.form.children.key %}
+                {% set token = child.vars.form.children.token %}
+                {% set i = i + 1 %}
+                <li class="afb_item afb_preview_{{ i }}" data-upload="{{ i }}" data-tmp="{{ uploadMode == 'temporary' ? 1 : 0 }}">
+                    {% if imagePreview %}
+                        <div class="afb_file_preview">
+                            <img src="{{ partitech_afb_base_64_image(data) }}" alt="{{ data.getClientOriginalName }}" />
+                        </div>
+                    {% endif %}
+                    <div class="afb_filename"><span>{{ data.getClientOriginalName }}</span></div>
+                    {% if not disabled %}
+                        <a class="afb_remove_file" href="#" data-upload="{{ i }}">X</a>
+                    {% endif %}
+                    <input type="hidden" name="{{ key.vars.full_name }}" value="{{ key.vars.value }}">
+                    <input type="hidden" name="{{ token.vars.full_name }}" value="{{ token.vars.value }}">
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+{% endblock %}
+
+{% block file_info %}
+    {% set uploadId = uploadId is null ? '__UPLOAD_ID__' : uploadId %}
+    {% set dataId = file and file.id ? file.id : '__DATA_ID__' %}
+    {% set fileName = fileName is null ? '__FILE_NAME__' : fileName %}
+
+    <li class="afb_item afb_preview_{{ uploadId }}" data-upload="{{ uploadId }}">
+        {% if imagePreview %}
+            <div class="afb_file_preview">
+                {% if img is not null %}
+                    <img src="{{ img }}" alt="{{ fileName }}"/>
+                {% endif %}
+            </div>
+        {% endif %}
+        <div class="afb_filename"><span>{{ fileName }}</span></div>
+        {% if progressBar %}
+            <div class="afb_file_progress"><div></div></div>
+        {% endif %}
+        {% if imagePreview %}
+            <div class="afb_file_success-mark">
+                <svg width="54px" height="54px" viewBox="0 0 54 54" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                     xmlns:xlink="http://www.w3.org/1999/xlink"><title>Check</title>
+                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                        <path d="M23.5,31.8431458 L17.5852419,25.9283877 C16.0248253,24.3679711 13.4910294,24.366835 11.9289322,25.9289322 C10.3700136,27.4878508 10.3665912,30.0234455 11.9283877,31.5852419 L20.4147581,40.0716123 C20.5133999,40.1702541 20.6159315,40.2626649 20.7218615,40.3488435 C22.2835669,41.8725651 24.794234,41.8626202 26.3461564,40.3106978 L43.3106978,23.3461564 C44.8771021,21.7797521 44.8758057,19.2483887 43.3137085,17.6862915 C41.7547899,16.1273729 39.2176035,16.1255422 37.6538436,17.6893022 L23.5,31.8431458 Z M27,53 C41.3594035,53 53,41.3594035 53,27 C53,12.6405965 41.3594035,1 27,1 C12.6405965,1 1,12.6405965 1,27 C1,41.3594035 12.6405965,53 27,53 Z"
+                              stroke-opacity="0.198794158" stroke="#747474" fill-opacity="0.816519475"
+                              fill="#FFFFFF">
+                        </path>
+                    </g>
+                </svg>
+            </div>
+        {% endif %}
+        {% if not disabled %}
+            <a class="afb_remove_file" href="#" data-upload="{{ uploadId }}" data-id="{{ dataId }}">X</a>
+        {% endif %}
+    </li>
+{% endblock %}

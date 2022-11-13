@@ -55,6 +55,7 @@ class PartitechAdvancedFormExtension extends Extension
 
         $container->registerForAutoconfiguration(DependentMapperInterface::class)
             ->addTag('partitech_afb.dependent_entity_mapper');
+
     }
 
     /**
@@ -82,6 +83,7 @@ class PartitechAdvancedFormExtension extends Extension
             'controller.xml',
             'form.xml',
             'manager.xml',
+            'services.xml',
         ];
         foreach ($toBeLoaded as $file) {
             $loader->load($file);
@@ -98,6 +100,7 @@ class PartitechAdvancedFormExtension extends Extension
 
         $resources = array_merge($resources, [
             '@PartitechAdvancedForm/Form/upload_file.html.twig',
+            '@PartitechAdvancedForm/Form/key_value.html.twig',
         ]);
         $container->setParameter('twig.form.resources', $resources);
     }

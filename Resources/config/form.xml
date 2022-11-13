@@ -36,5 +36,11 @@
             <argument type="service" id="router"/>
             <tag name="form.type"/>
         </service>
+        <service id="Partitech_advanced_form.key_value_type" class="Partitech\AdvancedFormBundle\Form\Type\KeyValueType">
+            <tag name="form.type" alias="partitech_key_value"/>
+        </service>
+        <service id="Partitech_advanced_form.form.key_value_row_type" class="Partitech\AdvancedFormBundle\Form\Type\KeyValueRowType">
+            <tag name="form.type" alias="partitech_key_value_row"/>
+        </service>
     </services>
 </container>

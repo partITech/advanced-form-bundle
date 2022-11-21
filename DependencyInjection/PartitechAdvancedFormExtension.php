@@ -101,6 +101,7 @@ class PartitechAdvancedFormExtension extends Extension
         $resources = array_merge($resources, [
             '@PartitechAdvancedForm/Form/upload_file.html.twig',
             '@PartitechAdvancedForm/Form/key_value.html.twig',
+            '@PartitechAdvancedForm/Form/grapes_area.html.twig'
         ]);
         $container->setParameter('twig.form.resources', $resources);
     }

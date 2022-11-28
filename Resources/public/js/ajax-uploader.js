@@ -1,14 +1,14 @@
 (function() {
-'use strict';
-let jQuery;
+    'use strict';
+    let jQuery;
 
-if (typeof module === "object" && module.exports) {
-    jQuery = require("jquery");
-} else {
-    jQuery = window.jQuery;
-}
+    if (typeof module === "object" && module.exports) {
+        jQuery = require("jquery");
+    } else {
+        jQuery = window.jQuery;
+    }
 
-let $ = jQuery;
+    let $ = jQuery;
     $.fn.AfbAjaxUploader = function(options) {
         let settings = $.extend({
             onXhrFail: baseOnXhrFail,
@@ -119,9 +119,9 @@ let $ = jQuery;
 
                     previewElement.addClass('afb_upload_complete');
                     previewElement.removeClass('afb_upload_progressing');
-
                     if (response.id) {
                         previewElement.find('.afb_remove_file').data('id', response.id);
+                        previewElement.append(response.filename);
                     }
                     if (uploadMode === 'temporary') {
                         addHiddenFields(previewElement, response);

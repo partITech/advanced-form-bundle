@@ -45,7 +45,6 @@ newsletter_images : will add an array of media that will be availlable to compos
 ```php
     ->add('text',\Partitech\AdvancedFormBundle\Form\Type\GrapesAreaNewsletter::class,
             [
-                    'newsletter_trackingCode'=>'<script>var tracking_code="placed in the header";</script>',
                     'newsletter_images'=>[
                      'https://images.pexels.com/photos/13219568/pexels-photo-13219568.jpeg',
                     [

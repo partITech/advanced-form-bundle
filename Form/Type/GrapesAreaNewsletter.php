@@ -9,7 +9,7 @@ use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 
-class GrapesArea extends AbstractType
+class GrapesAreaNewsletter extends AbstractType
 {
     public function buildView(FormView $view, FormInterface $form, array $options)
     {
@@ -22,7 +22,7 @@ class GrapesArea extends AbstractType
 
     public function getBlockPrefix()
     {
-        return 'partitech_afb_grapesarea';
+        return 'partitech_afb_grapesarea_newsletter';
     }
 
     public function getParent()

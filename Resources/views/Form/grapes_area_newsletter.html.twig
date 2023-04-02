@@ -1,4 +1,4 @@
-{% block partitech_afb_grapesarea_widget %}
+{% block partitech_afb_grapesarea_newsletter_widget %}
     {% block stylesheets -%}
         <!--
         <link rel="stylesheet" href="{{ asset('bundles/partitechadvancedform/css/grapesjs/grapesjs.min.css') }}"/>
@@ -6,7 +6,7 @@
 
 
         <link rel="stylesheet" href="{{ asset('bundles/partitechadvancedform/css/font-awesome.min.css?v0.20.1') }}"/> -->
-    <link rel="stylesheet" href="{{ asset('bundles/partitechadvancedform/css/grapesjs/grapes.min.css?v0.20.1') }}"/>
+        <link rel="stylesheet" href="{{ asset('bundles/partitechadvancedform/css/grapesjs/grapes.min.css?v0.20.1') }}"/>
         <link rel="stylesheet" href="{{ asset('bundles/partitechadvancedform/css/grapesjs/material.css') }}"/>
         <link rel="stylesheet" href="{{ asset('bundles/partitechadvancedform/css/grapesjs/tooltip.css') }}"/>
         <link rel="stylesheet" href="{{ asset('bundles/partitechadvancedform/css/grapesjs/toastr.min.css') }}"/>
@@ -23,9 +23,11 @@
                 width: auto;
             }
 
-            .fa-link:before{
-                /*content:"\f0c1"*/
-                content: "\f31e" !important;
+            .gjs-block {
+                cursor: all-scroll;
+                font-size: 11px;
+                font-weight: bolder;
+                text-align: center;
             }
 
 
@@ -76,19 +78,129 @@ https://grapesjs.com/docs/modules/Storage.html#common-use-cases
 
     <div id="{{ id }}-partitech-adf-grapes-area-data" style="display: none">
         {{ form_widget(form) }}
+        <input type="hidden" name="{{ form.vars.id }}-html" id="{{ form.vars.id }}-html">
+
     </div>
 
     <div id="{{ id }}-partitech-adf-grapes-area" class="gjs-editor-cont" ></div>
 
 
 
+{% if inline_style is not defined %}
+    {% set inline_style = "" %}
+{% endif %}
+
+{% if newsletter_subject is not defined %}
+    {% set newsletter_subject = "" %}
+{% endif %}
+
+{% if newsletter_trackingCode is not defined %}
+    {% set newsletter_trackingCode = "" %}
+{% endif %}
+
+{% if newsletter_host is not defined %}
+    {% set newsletter_host = app.request.getSchemeAndHttpHost() %}
+{% endif %}
+
     <script type="text/javascript">
 
 
+        var newsletter_host="{{ newsletter_host }}";
+        var newsletter_subject="{{ newsletter_subject }}";
+        var newsletter_trackingCode="{{ newsletter_trackingCode }}";
+        var inline_style="{{ inline_style }}";
+
+
+        function load_am_config(assetManagerConfig){
+            assetManagerConfig.upload="/admin/app/newsletter/$current_id/uploadNewsletter/";
+            //assetManagerConfig.dropzone=1;
+            assetManagerConfig.multiUpload=true;
+            console.log(assetManagerConfig);
+        }
+
+
+        function load_blocs(blockManager) {
+
+
+            blockManager.add('Layout-global', {
+                label: 'titre block',
+                category: 'Categorie',
+                content: '<span>content</span>',
+                attributes: {
+                    class: 'class-item'
+                }
+            });
+        }
+
+        function load_assets(assetManager){
+            assetManager.add([
+                {
+                    src: '/bundles/sonataadmin/images/logo_title.png',
+                    height: '500',
+                    width: '498',
+                    name: 'logo'
+                }
+
+            ]);
+
+        }
+
+        function sendTestNewsletter()
+        {
+            var email=jQuery('#testNlEmail').val();
+            var subject=jQuery('#testNlSubject').val()
+            if(email.length && subject.length)
+            {
+                jQuery('#testNlEmail').removeClass('error');
+                jQuery('#testNlSubject').removeClass('error');
+
+                $.post("/admin/app/newsletter/$current_id/testNewsletter/", {email:jQuery('#testNlEmail').val(), subject:jQuery('#testNlSubject').val(), content:jQuery('#testNlContent').val()}, function(response){});
+            }else{
+                if(!email.length){
+                    jQuery('#testNlEmail').addClass('error');
+                }
+
+                if(!email.length){
+                    jQuery('#testNlSubject').addClass('error');
+                }
+            }
+        }
+
+
+
+
+
+
+
+        const formElement = document.querySelector('form[role="form"]');
+        let isDefaultPrevented = false;
+        formElement.addEventListener('submit', event => {
+            if (!isDefaultPrevented) {
+                event.preventDefault(); // Empêche le comportement par défaut (soumission)
+                isDefaultPrevented = true;
+
+                const projectDataEl = $("#{{ form.vars.id }}")[0];
+                const projectHtmlEl = $("#{{ form.vars.id }}-html")[0];
+                //console.log(`HTML: ${projectHtmlEl.value}\n------\nDATA: ${projectDataEl.value}`);
+                //add generated html in the json string in order to store it in db.
+                //content can then be used serverside without JS processing.
+                const projectData=JSON.parse(projectDataEl.value || '{}');
+                projectData.dataHtml=projectHtmlEl.value;
+                $("#{{ form.vars.id }}").val(JSON.stringify(projectData));
+
+                formElement.submit();
+            } else {
+                isDefaultPrevented = false;
+            }
+        });
+
+
+
         // Inline storage
+
         const partitech_afb_grapesarea_Storage = (editor) => {
-            const projectDataEl = $("#{{ id }}-partitech-adf-grapes-area-data input")[0];
-            const projectHtmlEl = $("#{{ id }}-partitech-adf-grapes-area")[0];
+            const projectDataEl = $("#{{ form.vars.id }}")[0];
+            const projectHtmlEl = $("#{{ form.vars.id }}-html")[0];
 
             editor.Storage.add('partitech-afb-grapesarea', {
                 load() {
@@ -98,16 +210,15 @@ https://grapesjs.com/docs/modules/Storage.html#common-use-cases
                     const component = editor.Pages.getSelected().getMainComponent();
                     projectDataEl.value = JSON.stringify(data);
                     projectHtmlEl.value = `<html>
-                                          <head>
-                                            <style>${editor.getCss({ component })}</style>
-                                          </head>
-                                          ${editor.getHtml({ component })}
-                                        <html>`;
+          <head>
+            <style>${editor.getCss({ component })}</style>
+          </head>
+          ${editor.getHtml({ component })}
+        <html>`;
+
                 }
             });
         };
-
-
 
 
         var host = '//artf.github.io/grapesjs/';
@@ -125,6 +236,7 @@ https://grapesjs.com/docs/modules/Storage.html#common-use-cases
             clearOnRender: true,
             height: '1200px',
             storageManager: { type: 'partitech-afb-grapesarea' },
+            //storageManager: { type: 'partitech-afb-grapesarea' },
             assetManager: {
                 assets: images,
                 upload: 0,
@@ -132,6 +244,7 @@ https://grapesjs.com/docs/modules/Storage.html#common-use-cases
             },
             container : '#{{ id }}-partitech-adf-grapes-area',
             fromElement: true,
+            //plugins: ['gjs-preset-newsletter', 'gjs-plugin-ckeditor', partitech_afb_grapesarea_Storage],
             plugins: ['gjs-preset-newsletter', 'gjs-plugin-ckeditor', partitech_afb_grapesarea_Storage],
             pluginsOpts: {
                 'gjs-preset-newsletter': {
@@ -139,7 +252,7 @@ https://grapesjs.com/docs/modules/Storage.html#common-use-cases
                     modalLabelExport: 'Copy the code and use it wherever you want',
                     codeViewerTheme: 'material',
                     //defaultTemplate: templateImport,
-                    importPlaceholder: '<table class="table"><tr><td class="cell">Hello world!</td></tr></table>',
+                    importPlaceholder: '<table class="table"><tr><td class="cell">Hello world!!</td></tr></table>',
                     cellStyle: {
                         'font-size': '12px',
                         'font-weight': 300,
@@ -175,6 +288,48 @@ https://grapesjs.com/docs/modules/Storage.html#common-use-cases
         var pnm = editor.Panels;
         var cmdm = editor.Commands;
         var md = editor.Modal;
+
+        var newsletter_trackingCode=false
+
+
+        cmdm.add('download-html', {
+            run(editor, sender) {
+                var html = editor.runCommand('gjs-get-inlined-html');
+
+                if (newsletter_trackingCode) {
+                    html="<!DOCTYPE html><html lang='fr'><head>"+newsletter_trackingCode+"<title>Newsletter CAUE</title>"+inline_style+"</head><body>"+html+"</body></html>";
+                } else {
+                    html="<!DOCTYPE html><html lang='fr'><head><title>"+newsletter_subject+"</title>"+inline_style+"</head><body>"+html+"</body></html>";
+                }
+
+                var a         = document.createElement('a');
+                a.href        = 'data:attachment/html,' + encodeURIComponent(html);
+                a.target      = '_blank';
+                a.download    = newsletter_subject+'.html';
+                document.body.appendChild(a);
+                a.click();
+            }
+        });
+
+
+        pnm.addButton('options', {
+            id: 'download-html',
+            className: 'fa fa-file-code-o',
+            command: 'download-html',
+            attributes: {
+                'title': 'Télécharger le fichier html',
+                'data-tooltip-pos': 'bottom',
+            },
+        });
+
+
+
+
+
+
+
+
+
         /*
         var testContainer = document.getElementById("test-form");
         var contentEl = testContainer.querySelector('input[name=body]');
@@ -307,19 +462,53 @@ https://grapesjs.com/docs/modules/Storage.html#common-use-cases
         }
 
 
+        const blockManager = editor.BlockManager;
+        const assetManager = editor.AssetManager;
+        const assetManagerConfig = editor.AssetManager.getConfig();
+
+
         // Do stuff on load
         editor.on('load', function() {
             //alert('sdfsdf');
             var $ = grapesjs.$;
 
-            // Show logo with the version
-            /*var logoCont = document.querySelector('.gjs-logo-cont');
-            document.querySelector('.gjs-logo-version').innerHTML = 'v' + grapesjs.version;
-            var logoPanel = document.querySelector('.gjs-pn-commands');
-            logoPanel.appendChild(logoCont);*/
+            //load all blocs and assets
+            load_blocs(blockManager);
+            load_assets(assetManager);
 
-            // Move Ad
-            //$('#gjs').append($('.ad-cont'));
+            assetManagerConfig.upload="/admin/app/newsletter/{{ id }}/uploadNewsletter/";
+            assetManagerConfig.dropzone=1;
+            assetManagerConfig.multiUpload=true;
+
+            //load configuration for assets (ie. upload path)
+
+
+
+            //Open all catégories
+            editor.BlockManager.getCategories().each(ctg => ctg.set('open', false));
+
+            //add styles
+            styleManager = editor.StyleManager;
+            fontProperty = styleManager.getProperty('typography', 'font-family');
+            var list = [];
+            fontProperty.set('list', list);
+            list = [
+                fontProperty.addOption({value: "'Overlock', cursive;", name: 'Overlock'}),
+                fontProperty.addOption({value: "'Ubuntu', sans-serif;", name: 'Ubuntu'}),
+                fontProperty.addOption({value: "'Raleway', sans-serif;", name: 'Raleway'}),
+                fontProperty.addOption({value: "'EB Garamond', serif;", name: 'EB Garamond'}),
+                fontProperty.addOption({value: "'Overlock', cursive", name: 'Overlock'}),
+                fontProperty.addOption({value: "'Rubik', sans-serif", name: 'Rubik'}),
+            ];
+            fontProperty.set('list', list);
+            styleManager.render();
         });
+
+        editor.on('asset:upload:response', (response) => {
+            var result = JSON.parse(response);
+            editor.AssetManager.add(result.data);
+            editor.AssetManager.store();
+        });
+
     </script>
 {% endblock %}

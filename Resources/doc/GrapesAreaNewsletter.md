@@ -1,4 +1,4 @@
-KeyValueFormBundle
+GrapesAreaNewsletter
 ==================
 
 A form type for grapeJS newsletter preset on sonata.

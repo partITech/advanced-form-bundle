@@ -29,7 +29,7 @@ echo $data['dataHtml'];
 ```
 
 
-You can add pass some option to the form such as :
+You can pass some option to the form such as :
 
 newsletter_trackingCode : will add a string in the header of the generated page. Purpose is to add a tracking code to your newsletter.
 

@@ -1,4 +1,9 @@
 {% block partitech_afb_grapesarea_newsletter_widget %}
+
+    {{ dump(form.vars.newsletter_images) }}
+
+
+
     {% block stylesheets -%}
         <!--
         <link rel="stylesheet" href="{{ asset('bundles/partitechadvancedform/css/grapesjs/grapesjs.min.css') }}"/>
@@ -86,21 +91,6 @@ https://grapesjs.com/docs/modules/Storage.html#common-use-cases
 
 
 
-{% if inline_style is not defined %}
-    {% set inline_style = "" %}
-{% endif %}
-
-{% if newsletter_subject is not defined %}
-    {% set newsletter_subject = "" %}
-{% endif %}
-
-{% if newsletter_trackingCode is not defined %}
-    {% set newsletter_trackingCode = "" %}
-{% endif %}
-
-{% if newsletter_host is not defined %}
-    {% set newsletter_host = app.request.getSchemeAndHttpHost() %}
-{% endif %}
 
     <script type="text/javascript">
 
@@ -108,7 +98,7 @@ https://grapesjs.com/docs/modules/Storage.html#common-use-cases
         var newsletter_host="{{ newsletter_host }}";
         var newsletter_subject="{{ newsletter_subject }}";
         var newsletter_trackingCode="{{ newsletter_trackingCode }}";
-        var inline_style="{{ inline_style }}";
+        var newsletter_inline_style="{{ newsletter_inline_style }}";
 
 
         function load_am_config(assetManagerConfig){
@@ -121,28 +111,40 @@ https://grapesjs.com/docs/modules/Storage.html#common-use-cases
 
         function load_blocs(blockManager) {
 
+            {% for i, bloc in form.vars.newsletter_blocs %}
 
-            blockManager.add('Layout-global', {
-                label: 'titre block',
-                category: 'Categorie',
-                content: '<span>content</span>',
+            blockManager.add('Layout-global-{{ i }}', {
+                label: '{{ bloc.label|escape }}',
+                category: '{{ bloc.category|escape }}',
+                content: '{{ bloc.content|raw}}',
                 attributes: {
-                    class: 'class-item'
+                    class: '{{ bloc.class|escape }}'
                 }
             });
+
+            {% endfor %}
         }
 
+
+
+
+
         function load_assets(assetManager){
-            assetManager.add([
-                {
-                    src: '/bundles/sonataadmin/images/logo_title.png',
-                    height: '500',
-                    width: '498',
-                    name: 'logo'
-                }
+            {% for image in form.vars.newsletter_images %}
 
-            ]);
-
+                {% if image is iterable %}
+                    assetManager.add([
+                        {
+                            src: '{{ image.src }}',
+                            height: '{{ image.height }}',
+                            width: '{{ image.width }}',
+                            name: '{{ image.name }}'
+                        }
+                    ]);
+                {% else %}
+                    assetManager.add([ {src: '{{ image}}'}]);
+                {% endif %}
+            {% endfor %}
         }
 
         function sendTestNewsletter()
@@ -222,13 +224,9 @@ https://grapesjs.com/docs/modules/Storage.html#common-use-cases
 
 
         var host = '//artf.github.io/grapesjs/';
-        var images = [
-            host + 'img/grapesjs-logo.png',
-            host + 'img/tmp-blocks.jpg',
-            host + 'img/tmp-tgl-images.jpg',
-            host + 'img/tmp-send-test.jpg',
-            host + 'img/tmp-devices.jpg',
-        ];
+        var images = [];
+
+
 
 
         // Set up GrapesJS editor with the Newsletter plugin
@@ -252,7 +250,7 @@ https://grapesjs.com/docs/modules/Storage.html#common-use-cases
                     modalLabelExport: 'Copy the code and use it wherever you want',
                     codeViewerTheme: 'material',
                     //defaultTemplate: templateImport,
-                    importPlaceholder: '<table class="table"><tr><td class="cell">Hello world!!</td></tr></table>',
+                    importPlaceholder: '<table class="table"><tr><td class="cell"><span>Hello world!!</span></td></tr></table>',
                     cellStyle: {
                         'font-size': '12px',
                         'font-weight': 300,
@@ -297,9 +295,9 @@ https://grapesjs.com/docs/modules/Storage.html#common-use-cases
                 var html = editor.runCommand('gjs-get-inlined-html');
 
                 if (newsletter_trackingCode) {
-                    html="<!DOCTYPE html><html lang='fr'><head>"+newsletter_trackingCode+"<title>Newsletter CAUE</title>"+inline_style+"</head><body>"+html+"</body></html>";
+                    html="<!DOCTYPE html><html lang='fr'><head>"+newsletter_trackingCode+"<title></title>"+newsletter_inline_style+"</head><body>"+html+"</body></html>";
                 } else {
-                    html="<!DOCTYPE html><html lang='fr'><head><title>"+newsletter_subject+"</title>"+inline_style+"</head><body>"+html+"</body></html>";
+                    html="<!DOCTYPE html><html lang='fr'><head><title>"+newsletter_subject+"</title>"+newsletter_inline_style+"</head><body>"+html+"</body></html>";
                 }
 
                 var a         = document.createElement('a');
